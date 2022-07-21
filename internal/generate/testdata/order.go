@@ -3,6 +3,8 @@ package code
 import (
 	"context"
 	"database/sql"
+	"reflect"
+	"strings"
 )
 
 type OrderDAO struct {
@@ -72,4 +74,78 @@ func (dao *OrderDAO) SelectBatchByRaw(ctx context.Context, query string, args ..
 func (dao *OrderDAO) SelectBatchByWhere(ctx context.Context, where string, args ...any) ([]*Order, error) {
 	s := "SELECT `order_time`,`order_id`,`user_id` FROM `order` WHERE " + where
 	return dao.SelectBatchByRaw(ctx, s, args...)
+}
+
+func (dao *OrderDAO) UpdateByWhereWithNoneZero(ctx context.Context, val *Order, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.UpdateNoneZero(val)
+	newArgs = append(newArgs, args...)
+	s := "UPDATE `order` SET " + cols + " WHERE " + where
+	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+}
+
+func (dao *OrderDAO) UpdateNoneZero(val *Order) ([]interface{}, string) {
+	var cols = make([]string, 0, 3)
+	var args = make([]interface{}, 0, 3)
+	judge := func(x any) bool {
+		return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
+	}
+	if judge(val.OrderTime) {
+		args = append(args, val.OrderTime)
+		cols = append(cols, "`order_time`")
+	}
+
+	if judge(val.OrderId) {
+		args = append(args, val.OrderId)
+		cols = append(cols, "`order_id`")
+	}
+
+	if judge(val.UserId) {
+		args = append(args, val.UserId)
+		cols = append(cols, "`user_id`")
+	}
+
+	return args, strings.Join(cols, "=?,")
+}
+
+func (dao *OrderDAO) UpdateByWhereWithPrimaryKey(ctx context.Context, val *Order, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.UpdateNonePrimaryKey(val)
+	newArgs = append(newArgs, args...)
+	s := "UPDATE `order` SET " + cols + " WHERE " + where
+	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+}
+
+func (dao *OrderDAO) UpdateNonePrimaryKey(val *Order) ([]interface{}, string) {
+	var cols = make([]string, 0, 3)
+	var args = make([]interface{}, 0, 3)
+	args = append(args, val.UserId)
+	cols = append(cols, "`user_id`")
+
+	return args, strings.Join(cols, "=?,")
+}
+
+func (dao *OrderDAO) UpdateByWhereWithSpecificCol(ctx context.Context, val *Order, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.UpdateBySpecificCol(val)
+	newArgs = append(newArgs, args...)
+	s := "UPDATE `order` SET " + cols + " WHERE " + where
+	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+}
+
+func (dao *OrderDAO) UpdateBySpecificCol(val *Order) ([]interface{}, string) {
+	var cols = make([]string, 0, 3)
+	var args = make([]interface{}, 0, 3)
+	args = append(args, val.OrderTime)
+	cols = append(cols, "`order_time`")
+
+	args = append(args, val.OrderId)
+	cols = append(cols, "`order_id`")
+
+	return args, strings.Join(cols, "=?,")
+}
+
+func (dao *OrderDAO) UpdateByRaw(ctx context.Context, val *Order, query string, args ...any) (int64, error) {
+	res, err := dao.DB.ExecContext(ctx, query, args...)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
 }

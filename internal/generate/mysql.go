@@ -25,7 +25,7 @@ type MySQLGenerator struct {
 
 func (*MySQLGenerator) Generate(m *model.Model, writer io.Writer) error {
 	var err error
-	tMySQL := template.Must(template.ParseGlob("./mysql_template/*.go.tpl"))
+	tMySQL := template.Must(template.ParseGlob("./mysql_template/*.gohtml"))
 	for _, v := range tMySQL.Templates() {
 		err = v.Execute(writer, m)
 		if err != nil {

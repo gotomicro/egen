@@ -46,6 +46,32 @@ func (m *Model) QuotedExecArgsWithParameter(flag, owner, col string) string {
 	return strings.Join(str, ", ")
 }
 
+func InitModel() *Model {
+	return &Model{
+		TableName: "user",
+		GoName:    "User",
+		Fields: []Field{
+			{ColName: "first_name", GoName: "FirstName"},
+			{ColName: "last_name", GoName: "LastName"},
+			{ColName: "user_id", GoName: "UserId"},
+		},
+	}
+}
+
+func (m *Model) QuotedTableName() string {
+	return "`" + m.TableName + "`"
+}
+
+func (m *Model) QuotedExecArgsWithParameter(flag, owner, col string) string {
+	var str []string
+	for _, v := range m.Fields {
+		if strings.Contains(col, v.ColName) {
+			str = append(str, flag+owner+"."+v.GoName)
+		}
+	}
+	return strings.Join(str, ", ")
+}
+
 func (m *Model) InsertWithReplaceParameter() string {
 	var str strings.Builder
 	for k := range m.Fields {
