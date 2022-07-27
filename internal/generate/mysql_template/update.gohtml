@@ -10,15 +10,56 @@ func (dao *{{.GoName}}DAO) UpdateByWhereWithNoneZero(ctx context.Context, val *{
 func (dao *{{.GoName}}DAO) UpdateNoneZero(val *{{.GoName}}) ([]interface{}, string) {
 	var cols = make([]string, 0, {{len .Fields}})
 	var args = make([]interface{}, 0, {{len .Fields}})
-	judge := func(x any) bool {
-		return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
-	}
-	{{- range $index,$val := .Fields}}
-	if judge(val.{{.GoName}}) {
+{{- range .Fields}}
+	{{- if .IsInteger}}
+	if val.{{.GoName}} != 0 {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
-	{{end}}
+	{{- end}}
+    {{- if .IsFloat}}
+	if val.{{.GoName}} != 0.0 {
+		args = append(args, val.{{.GoName}})
+		cols = append(cols, "`{{.ColName}}`")
+	}
+    {{- end}}
+    {{- if .IsString}}
+	if val.{{.GoName}} != "" {
+		args = append(args, val.{{.GoName}})
+		cols = append(cols, "`{{.ColName}}`")
+	}
+    {{- end}}
+    {{- if .IsBool}}
+	if val.{{.GoName}} != False {
+		args = append(args, val.{{.GoName}})
+		cols = append(cols, "`{{.ColName}}`")
+	}
+    {{- end}}
+    {{- if .IsSlice}}
+	if len(val.{{.GoName}}) != 0 {
+		args = append(args, val.{{.GoName}})
+		cols = append(cols, "`{{.ColName}}`")
+	}
+    {{- end}}
+    {{- if .IsArray}}
+	if len(val.{{.GoName}}) != 0 {
+		args = append(args, val.{{.GoName}})
+		cols = append(cols, "`{{.ColName}}`")
+	}
+    {{- end}}
+    {{- if .IsMap}}
+	if val.{{.GoName}} != nil {
+		args = append(args, val.{{.GoName}})
+		cols = append(cols, "`{{.ColName}}`")
+	}
+    {{- end}}
+    {{- if .IsPtr}}
+	if val.{{.GoName}} != nil {
+		args = append(args, val.{{.GoName}})
+		cols = append(cols, "`{{.ColName}}`")
+	}
+    {{- end}}
+{{- end}}
 	return args, strings.Join(cols, "=?,")
 }
 
@@ -36,7 +77,7 @@ func (dao *{{.GoName}}DAO) UpdateNonePrimaryKey(val *{{.GoName}}) ([]interface{}
 	{{- if .IsPrimaryKey}}
 	args = append(args, {{print "val." .GoName}})
 	cols = append(cols, "`{{.ColName}}`")
-    {{end}}
+    {{- end}}
 	{{- end}}
 	return args, strings.Join(cols, "=?,")
 }
@@ -55,7 +96,7 @@ func (dao *{{.GoName}}DAO) UpdateBySpecificCol(val *{{.GoName}}) ([]interface{},
     {{- if .Order}}
 	args = append(args, {{print "val." .GoName}})
 	cols = append(cols, "`{{.ColName}}`")
-    {{end}}
+    {{- end}}
 	{{- end}}
 	return args, strings.Join(cols, "=?,")
 }

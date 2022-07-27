@@ -3,7 +3,6 @@ package code
 import (
 	"context"
 	"database/sql"
-	"reflect"
 	"strings"
 )
 
@@ -86,24 +85,18 @@ func (dao *OrderDAO) UpdateByWhereWithNoneZero(ctx context.Context, val *Order, 
 func (dao *OrderDAO) UpdateNoneZero(val *Order) ([]interface{}, string) {
 	var cols = make([]string, 0, 3)
 	var args = make([]interface{}, 0, 3)
-	judge := func(x any) bool {
-		return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
-	}
-	if judge(val.OrderTime) {
+	if val.OrderTime != "" {
 		args = append(args, val.OrderTime)
 		cols = append(cols, "`order_time`")
 	}
-
-	if judge(val.OrderId) {
+	if val.OrderId != 0 {
 		args = append(args, val.OrderId)
 		cols = append(cols, "`order_id`")
 	}
-
-	if judge(val.UserId) {
+	if val.UserId != 0 {
 		args = append(args, val.UserId)
 		cols = append(cols, "`user_id`")
 	}
-
 	return args, strings.Join(cols, "=?,")
 }
 
@@ -119,7 +112,6 @@ func (dao *OrderDAO) UpdateNonePrimaryKey(val *Order) ([]interface{}, string) {
 	var args = make([]interface{}, 0, 3)
 	args = append(args, val.UserId)
 	cols = append(cols, "`user_id`")
-
 	return args, strings.Join(cols, "=?,")
 }
 
@@ -135,10 +127,8 @@ func (dao *OrderDAO) UpdateBySpecificCol(val *Order) ([]interface{}, string) {
 	var args = make([]interface{}, 0, 3)
 	args = append(args, val.OrderTime)
 	cols = append(cols, "`order_time`")
-
 	args = append(args, val.OrderId)
 	cols = append(cols, "`order_id`")
-
 	return args, strings.Join(cols, "=?,")
 }
 

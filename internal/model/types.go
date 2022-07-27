@@ -30,6 +30,70 @@ type Field struct {
 	IsPrimaryKey bool
 	GoName       string
 	Order        bool
+	GoType       string
+}
+
+func (f *Field) IsInteger() bool {
+	switch f.GoType {
+	case "int64", "int32", "int16", "int8", "int":
+		return true
+	case "uint64", "uint32", "uint16", "uint8", "uint":
+		return true
+	case "byte", "rune":
+		return true
+	}
+	return false
+}
+
+func (f *Field) IsFloat() bool {
+	switch f.GoType {
+	case "float32", "float64":
+		return true
+	}
+	return false
+}
+
+func (f *Field) IsString() bool {
+	switch f.GoType {
+	case "string":
+		return true
+	}
+	return false
+}
+
+func (f *Field) IsBool() bool {
+	if f.GoType == "bool" {
+		return true
+	}
+	return false
+}
+
+func (f *Field) IsSlice() bool {
+	if f.GoType == "slice" {
+		return true
+	}
+	return false
+}
+
+func (f *Field) IsMap() bool {
+	if f.GoType == "map" {
+		return true
+	}
+	return false
+}
+
+func (f *Field) IsArray() bool {
+	if f.GoType == "array" {
+		return true
+	}
+	return false
+}
+
+func (f *Field) IsPtr() bool {
+	if f.GoType == "ptr" {
+		return true
+	}
+	return false
 }
 
 func (m *Model) QuotedTableName() string {
