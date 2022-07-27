@@ -35,9 +35,7 @@ type Field struct {
 
 func (f *Field) IsInteger() bool {
 	switch f.GoType {
-	case "int64", "int32", "int16", "int8", "int":
-		return true
-	case "uint64", "uint32", "uint16", "uint8", "uint":
+	case "int64", "int32", "int16", "int8", "int", "uint64", "uint32", "uint16", "uint8", "uint":
 		return true
 	case "byte", "rune":
 		return true
@@ -121,6 +119,6 @@ func (m *Model) QuotedAllCol() string {
 		}
 		str.WriteString("`" + v.ColName + "`")
 	}
-
+	
 	return str.String()
 }
