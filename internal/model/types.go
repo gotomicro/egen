@@ -54,46 +54,27 @@ func (f *Field) IsFloat() bool {
 }
 
 func (f *Field) IsString() bool {
-	switch f.GoType {
-	case "string":
-		return true
-	}
-	return false
+	return f.GoType == "string"
 }
 
 func (f *Field) IsBool() bool {
-	if f.GoType == "bool" {
-		return true
-	}
-	return false
+	return f.GoType == "bool"
 }
 
 func (f *Field) IsSlice() bool {
-	if f.GoType == "slice" {
-		return true
-	}
-	return false
+	return f.GoType == "slice"
 }
 
 func (f *Field) IsMap() bool {
-	if f.GoType == "map" {
-		return true
-	}
-	return false
+	return f.GoType == "map"
 }
 
 func (f *Field) IsArray() bool {
-	if f.GoType == "array" {
-		return true
-	}
-	return false
+	return f.GoType == "array"
 }
 
 func (f *Field) IsPtr() bool {
-	if f.GoType == "ptr" {
-		return true
-	}
-	return false
+	return f.GoType == "ptr"
 }
 
 func (m *Model) QuotedTableName() string {
@@ -140,6 +121,6 @@ func (m *Model) QuotedAllCol() string {
 		}
 		str.WriteString("`" + v.ColName + "`")
 	}
-	
+
 	return str.String()
 }
