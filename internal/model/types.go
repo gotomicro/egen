@@ -79,13 +79,18 @@ func (m *Model) QuotedTableName() string {
 	return "`" + m.TableName + "`"
 }
 
-func (m *Model) QuotedExecArgsWithParameter(flag, owner, col string) string {
-	var str []string
+func (m *Model) QuotedExecArgsWithParameter(col []string, flag, owner string) string {
+	var str = make([]string, 0, len(m.Fields))
+	var strMap = make(map[string]int, len(m.Fields))
+	for k, v := range col {
+		strMap[v] = k
+	}
 	for _, v := range m.Fields {
-		if strings.Contains(col, v.ColName) {
-			str = append(str, flag+owner+"."+v.GoName)
+		if _, exist := strMap["`"+v.ColName+"`"]; exist {
+			str = append(str, flag+owner+v.GoName)
 		}
 	}
+
 	return strings.Join(str, ", ")
 }
 
@@ -100,25 +105,14 @@ func (m *Model) InsertWithReplaceParameter() string {
 	return str.String()
 }
 
-func (m *Model) QuotedExecArgsWithAll() string {
-	var str strings.Builder
-	for k, v := range m.Fields {
-		if k != 0 {
-			str.WriteString(", ")
-		}
-		str.WriteString("v." + v.GoName)
+func (m *Model) QuotedAllCol() []string {
+	var cols = make([]string, 0, len(m.Fields))
+	for _, v := range m.Fields {
+		cols = append(cols, "`"+v.ColName+"`")
 	}
-	return str.String()
+	return cols
 }
 
-func (m *Model) QuotedAllCol() string {
-	var str strings.Builder
-	for k, v := range m.Fields {
-		if k != 0 {
-			str.WriteByte(',')
-		}
-		str.WriteString("`" + v.ColName + "`")
-	}
-	
-	return str.String()
+func (*Model) AddToString(cols []string) string {
+	return strings.Join(cols, ",")
 }

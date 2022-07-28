@@ -16,6 +16,7 @@ package model
 
 import (
 	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
@@ -44,13 +45,15 @@ func InitType() *Model {
 			{GoType: "array"},
 			{GoType: "float32"},
 			{GoType: "map"},
+			{GoType: "byte"},
 		},
 	}
 }
 
 func TestModel_QuotedExecArgsWithParameter(t *testing.T) {
-	args := InitModel().QuotedExecArgsWithParameter("&", "user", "`first_name`,`last_name`")
-	assert.Equal(t, "&user.FirstName, &user.LastName", args)
+	dao := InitModel()
+	args := dao.QuotedExecArgsWithParameter(dao.QuotedAllCol(), "&", "user.")
+	assert.Equal(t, "&user.FirstName, &user.LastName, &user.UserId", args)
 }
 
 func TestModel_QuotedTableName(t *testing.T) {
@@ -59,13 +62,8 @@ func TestModel_QuotedTableName(t *testing.T) {
 }
 
 func TestModel_QuotedAllCol(t *testing.T) {
-	cols := InitModel().QuotedAllCol()
+	cols := strings.Join(InitModel().QuotedAllCol(), ",")
 	assert.Equal(t, "`first_name`,`last_name`,`user_id`", cols)
-}
-
-func TestModel_QuotedExecArgsWithAll(t *testing.T) {
-	args := InitModel().QuotedExecArgsWithAll()
-	assert.Equal(t, "v.FirstName, v.LastName, v.UserId", args)
 }
 
 func TestModel_InsertWithReplaceParameter(t *testing.T) {
@@ -83,4 +81,5 @@ func TestField_GoType(t *testing.T) {
 	assert.True(t, m.Fields[5].IsArray())
 	assert.True(t, m.Fields[6].IsFloat())
 	assert.True(t, m.Fields[7].IsMap())
+	assert.True(t, m.Fields[8].IsInteger())
 }

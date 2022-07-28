@@ -75,14 +75,14 @@ func (dao *OrderDAO) SelectBatchByWhere(ctx context.Context, where string, args 
 	return dao.SelectBatchByRaw(ctx, s, args...)
 }
 
-func (dao *OrderDAO) UpdateByWhereWithNoneZero(ctx context.Context, val *Order, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.UpdateNoneZero(val)
+func (dao *OrderDAO) UpdateNoneZeroByWhere(ctx context.Context, val *Order, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.QuotedNoneZero(val)
 	newArgs = append(newArgs, args...)
 	s := "UPDATE `order` SET " + cols + " WHERE " + where
-	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
 }
 
-func (dao *OrderDAO) UpdateNoneZero(val *Order) ([]interface{}, string) {
+func (dao *OrderDAO) QuotedNoneZero(val *Order) ([]interface{}, string) {
 	var cols = make([]string, 0, 3)
 	var args = make([]interface{}, 0, 3)
 	if val.OrderTime != "" {
@@ -100,14 +100,14 @@ func (dao *OrderDAO) UpdateNoneZero(val *Order) ([]interface{}, string) {
 	return args, strings.Join(cols, "=?,")
 }
 
-func (dao *OrderDAO) UpdateByWhereWithPrimaryKey(ctx context.Context, val *Order, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.UpdateNonePrimaryKey(val)
+func (dao *OrderDAO) UpdatePrimaryKeyByWhere(ctx context.Context, val *Order, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.QuotedNonePrimaryKey(val)
 	newArgs = append(newArgs, args...)
 	s := "UPDATE `order` SET " + cols + " WHERE " + where
-	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
 }
 
-func (dao *OrderDAO) UpdateNonePrimaryKey(val *Order) ([]interface{}, string) {
+func (dao *OrderDAO) QuotedNonePrimaryKey(val *Order) ([]interface{}, string) {
 	var cols = make([]string, 0, 3)
 	var args = make([]interface{}, 0, 3)
 	args = append(args, val.UserId)
@@ -115,14 +115,14 @@ func (dao *OrderDAO) UpdateNonePrimaryKey(val *Order) ([]interface{}, string) {
 	return args, strings.Join(cols, "=?,")
 }
 
-func (dao *OrderDAO) UpdateByWhereWithSpecificCol(ctx context.Context, val *Order, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.UpdateBySpecificCol(val)
+func (dao *OrderDAO) UpdateSpecificColByWhere(ctx context.Context, val *Order, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.QuotedSpecificCol(val)
 	newArgs = append(newArgs, args...)
 	s := "UPDATE `order` SET " + cols + " WHERE " + where
-	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
 }
 
-func (dao *OrderDAO) UpdateBySpecificCol(val *Order) ([]interface{}, string) {
+func (dao *OrderDAO) QuotedSpecificCol(val *Order) ([]interface{}, string) {
 	var cols = make([]string, 0, 3)
 	var args = make([]interface{}, 0, 3)
 	args = append(args, val.OrderTime)
@@ -132,7 +132,7 @@ func (dao *OrderDAO) UpdateBySpecificCol(val *Order) ([]interface{}, string) {
 	return args, strings.Join(cols, "=?,")
 }
 
-func (dao *OrderDAO) UpdateByRaw(ctx context.Context, val *Order, query string, args ...any) (int64, error) {
+func (dao *OrderDAO) UpdateColByRaw(ctx context.Context, val *Order, query string, args ...any) (int64, error) {
 	res, err := dao.DB.ExecContext(ctx, query, args...)
 	if err != nil {
 		return 0, err

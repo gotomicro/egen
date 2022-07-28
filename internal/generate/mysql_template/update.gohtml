@@ -1,76 +1,88 @@
 
 
-func (dao *{{.GoName}}DAO) UpdateByWhereWithNoneZero(ctx context.Context, val *{{.GoName}}, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.UpdateNoneZero(val)
+func (dao *{{.GoName}}DAO) UpdateNoneZeroByWhere(ctx context.Context, val *{{.GoName}}, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.QuotedNoneZero(val)
 	newArgs = append(newArgs, args...)
 	s := "UPDATE {{.QuotedTableName}} SET " + cols + " WHERE " + where
-	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
 }
 
-func (dao *{{.GoName}}DAO) UpdateNoneZero(val *{{.GoName}}) ([]interface{}, string) {
+func (dao *{{.GoName}}DAO) QuotedNoneZero(val *{{.GoName}}) ([]interface{}, string) {
 	var cols = make([]string, 0, {{len .Fields}})
 	var args = make([]interface{}, 0, {{len .Fields}})
 {{- range .Fields}}
+	{{- $control := false}}
 	{{- if .IsInteger}}
 	if val.{{.GoName}} != 0 {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
+	{{- $control = true}}
 	{{- end}}
     {{- if .IsFloat}}
 	if val.{{.GoName}} != 0.0 {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
+	{{- $control = true}}
     {{- end}}
     {{- if .IsString}}
 	if val.{{.GoName}} != "" {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
+	{{- $control = true}}
     {{- end}}
     {{- if .IsBool}}
 	if val.{{.GoName}} != False {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
+	{{- $control = true}}
     {{- end}}
     {{- if .IsSlice}}
 	if len(val.{{.GoName}}) != 0 {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
+	{{- $control = true}}
     {{- end}}
     {{- if .IsArray}}
 	if len(val.{{.GoName}}) != 0 {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
+	{{- $control = true}}
     {{- end}}
     {{- if .IsMap}}
 	if val.{{.GoName}} != nil {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
+	{{- $control = true}}
     {{- end}}
     {{- if .IsPtr}}
 	if val.{{.GoName}} != nil {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
+	{{- $control = true}}
+    {{- end}}
+    {{- if eq $control false}}
+    log.Fatalf("列:%s的类型错误",{{.GoName}}})
     {{- end}}
 {{- end}}
 	return args, strings.Join(cols, "=?,")
 }
 
-func (dao *{{.GoName}}DAO) UpdateByWhereWithPrimaryKey(ctx context.Context, val *{{.GoName}}, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.UpdateNonePrimaryKey(val)
+func (dao *{{.GoName}}DAO) UpdatePrimaryKeyByWhere(ctx context.Context, val *{{.GoName}}, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.QuotedNonePrimaryKey(val)
 	newArgs = append(newArgs, args...)
 	s := "UPDATE {{.QuotedTableName}} SET " + cols + " WHERE " + where
-	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
 }
 
-func (dao *{{.GoName}}DAO) UpdateNonePrimaryKey(val *{{.GoName}}) ([]interface{}, string) {
+func (dao *{{.GoName}}DAO) QuotedNonePrimaryKey(val *{{.GoName}}) ([]interface{}, string) {
 	var cols = make([]string, 0, {{len .Fields}})
 	var args = make([]interface{}, 0, {{len .Fields}})
 	{{- range .Fields}}
@@ -82,14 +94,14 @@ func (dao *{{.GoName}}DAO) UpdateNonePrimaryKey(val *{{.GoName}}) ([]interface{}
 	return args, strings.Join(cols, "=?,")
 }
 
-func (dao *{{.GoName}}DAO) UpdateByWhereWithSpecificCol(ctx context.Context, val *{{.GoName}}, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.UpdateBySpecificCol(val)
+func (dao *{{.GoName}}DAO) UpdateSpecificColByWhere(ctx context.Context, val *{{.GoName}}, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.QuotedSpecificCol(val)
 	newArgs = append(newArgs, args...)
 	s := "UPDATE {{.QuotedTableName}} SET " + cols + " WHERE " + where
-	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
 }
 
-func (dao *{{.GoName}}DAO) UpdateBySpecificCol(val *{{.GoName}}) ([]interface{}, string) {
+func (dao *{{.GoName}}DAO) QuotedSpecificCol(val *{{.GoName}}) ([]interface{}, string) {
 	var cols = make([]string, 0, {{len .Fields}})
 	var args = make([]interface{}, 0, {{len .Fields}})
 	{{- range .Fields}}
@@ -101,7 +113,7 @@ func (dao *{{.GoName}}DAO) UpdateBySpecificCol(val *{{.GoName}}) ([]interface{},
 	return args, strings.Join(cols, "=?,")
 }
 
-func (dao *{{.GoName}}DAO) UpdateByRaw(ctx context.Context, val *{{.GoName}}, query string, args ...any) (int64, error) {
+func (dao *{{.GoName}}DAO) UpdateColByRaw(ctx context.Context, val *{{.GoName}}, query string, args ...any) (int64, error) {
 	res, err := dao.DB.ExecContext(ctx, query, args...)
 	if err != nil {
 		return 0, err

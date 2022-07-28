@@ -75,14 +75,14 @@ func (dao *UserDAO) SelectBatchByWhere(ctx context.Context, where string, args .
 	return dao.SelectBatchByRaw(ctx, s, args...)
 }
 
-func (dao *UserDAO) UpdateByWhereWithNoneZero(ctx context.Context, val *User, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.UpdateNoneZero(val)
+func (dao *UserDAO) UpdateNoneZeroByWhere(ctx context.Context, val *User, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.QuotedNoneZero(val)
 	newArgs = append(newArgs, args...)
 	s := "UPDATE `user` SET " + cols + " WHERE " + where
-	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
 }
 
-func (dao *UserDAO) UpdateNoneZero(val *User) ([]interface{}, string) {
+func (dao *UserDAO) QuotedNoneZero(val *User) ([]interface{}, string) {
 	var cols = make([]string, 0, 4)
 	var args = make([]interface{}, 0, 4)
 	if val.LoginTime != "" {
@@ -104,14 +104,14 @@ func (dao *UserDAO) UpdateNoneZero(val *User) ([]interface{}, string) {
 	return args, strings.Join(cols, "=?,")
 }
 
-func (dao *UserDAO) UpdateByWhereWithPrimaryKey(ctx context.Context, val *User, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.UpdateNonePrimaryKey(val)
+func (dao *UserDAO) UpdatePrimaryKeyByWhere(ctx context.Context, val *User, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.QuotedNonePrimaryKey(val)
 	newArgs = append(newArgs, args...)
 	s := "UPDATE `user` SET " + cols + " WHERE " + where
-	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
 }
 
-func (dao *UserDAO) UpdateNonePrimaryKey(val *User) ([]interface{}, string) {
+func (dao *UserDAO) QuotedNonePrimaryKey(val *User) ([]interface{}, string) {
 	var cols = make([]string, 0, 4)
 	var args = make([]interface{}, 0, 4)
 	args = append(args, val.UserId)
@@ -119,14 +119,14 @@ func (dao *UserDAO) UpdateNonePrimaryKey(val *User) ([]interface{}, string) {
 	return args, strings.Join(cols, "=?,")
 }
 
-func (dao *UserDAO) UpdateByWhereWithSpecificCol(ctx context.Context, val *User, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.UpdateBySpecificCol(val)
+func (dao *UserDAO) UpdateSpecificColByWhere(ctx context.Context, val *User, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.QuotedSpecificCol(val)
 	newArgs = append(newArgs, args...)
 	s := "UPDATE `user` SET " + cols + " WHERE " + where
-	return dao.UpdateByRaw(ctx, val, s, newArgs...)
+	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
 }
 
-func (dao *UserDAO) UpdateBySpecificCol(val *User) ([]interface{}, string) {
+func (dao *UserDAO) QuotedSpecificCol(val *User) ([]interface{}, string) {
 	var cols = make([]string, 0, 4)
 	var args = make([]interface{}, 0, 4)
 	args = append(args, val.FirstName)
@@ -136,7 +136,7 @@ func (dao *UserDAO) UpdateBySpecificCol(val *User) ([]interface{}, string) {
 	return args, strings.Join(cols, "=?,")
 }
 
-func (dao *UserDAO) UpdateByRaw(ctx context.Context, val *User, query string, args ...any) (int64, error) {
+func (dao *UserDAO) UpdateColByRaw(ctx context.Context, val *User, query string, args ...any) (int64, error) {
 	res, err := dao.DB.ExecContext(ctx, query, args...)
 	if err != nil {
 		return 0, err
