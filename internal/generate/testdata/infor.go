@@ -5,9 +5,12 @@ type User struct {
 	FirstName string
 	UserId    uint32
 	LastName  string
+	Password  []byte
 }
 
 type Order struct {
+	HasBuy    bool
+	Price     float64
 	OrderTime string
 	OrderId   uint32
 	UserId    uint32

@@ -16,6 +16,7 @@ package model
 
 import (
 	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
@@ -31,9 +32,28 @@ func InitModel() *Model {
 	}
 }
 
+func InitType() *Model {
+	return &Model{
+		TableName: "user",
+		GoName:    "User",
+		Fields: []Field{
+			{GoType: "uint32"},
+			{GoType: "string"},
+			{GoType: "ptr"},
+			{GoType: "bool"},
+			{GoType: "slice"},
+			{GoType: "array"},
+			{GoType: "float32"},
+			{GoType: "map"},
+			{GoType: "byte"},
+		},
+	}
+}
+
 func TestModel_QuotedExecArgsWithParameter(t *testing.T) {
-	args := InitModel().QuotedExecArgsWithParameter("&", "user", "`first_name`,`last_name`")
-	assert.Equal(t, "&user.FirstName, &user.LastName", args)
+	dao := InitModel()
+	args := dao.QuotedExecArgsWithParameter(dao.QuotedAllCol(), "&", "user.")
+	assert.Equal(t, "&user.FirstName, &user.LastName, &user.UserId", args)
 }
 
 func TestModel_QuotedTableName(t *testing.T) {
@@ -42,16 +62,24 @@ func TestModel_QuotedTableName(t *testing.T) {
 }
 
 func TestModel_QuotedAllCol(t *testing.T) {
-	cols := InitModel().QuotedAllCol()
+	cols := strings.Join(InitModel().QuotedAllCol(), ",")
 	assert.Equal(t, "`first_name`,`last_name`,`user_id`", cols)
-}
-
-func TestModel_QuotedExecArgsWithAll(t *testing.T) {
-	args := InitModel().QuotedExecArgsWithAll()
-	assert.Equal(t, "v.FirstName, v.LastName, v.UserId", args)
 }
 
 func TestModel_InsertWithReplaceParameter(t *testing.T) {
 	para := InitModel().InsertWithReplaceParameter()
 	assert.Equal(t, "?,?,?", para)
+}
+
+func TestField_GoType(t *testing.T) {
+	m := InitType()
+	assert.True(t, m.Fields[0].IsInteger())
+	assert.True(t, m.Fields[1].IsString())
+	assert.True(t, m.Fields[2].IsPtr())
+	assert.True(t, m.Fields[3].IsBool())
+	assert.True(t, m.Fields[4].IsSlice())
+	assert.True(t, m.Fields[5].IsArray())
+	assert.True(t, m.Fields[6].IsFloat())
+	assert.True(t, m.Fields[7].IsMap())
+	assert.True(t, m.Fields[8].IsInteger())
 }
