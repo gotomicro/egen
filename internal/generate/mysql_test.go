@@ -40,6 +40,7 @@ func TestMySQLGenerator_Generate(t *testing.T) {
 					{ColName: "first_name", GoName: "FirstName", Order: true, GoType: "string"},
 					{ColName: "last_name", GoName: "LastName", Order: true, GoType: "string"},
 					{ColName: "user_id", GoName: "UserId", IsPrimaryKey: true, GoType: "uint32"},
+					{ColName: "password", GoName: "Password", GoType: "slice"},
 				},
 			},
 			wantErr:  nil,
@@ -54,26 +55,26 @@ func TestMySQLGenerator_Generate(t *testing.T) {
 					{ColName: "order_time", GoName: "OrderTime", Order: true, GoType: "string"},
 					{ColName: "order_id", GoName: "OrderId", Order: true, GoType: "uint32"},
 					{ColName: "user_id", GoName: "UserId", IsPrimaryKey: true, GoType: "uint32"},
+					{ColName: "has_buy", GoName: "HasBuy", GoType: "bool"},
+					{ColName: "price", GoName: "Price", GoType: "float64"},
 				},
 			},
 			wantErr:  nil,
 			testdata: "./testdata/order.go",
 		},
 	}
-
+	
 	mg := &MySQLGenerator{}
-
+	
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			t.Run(testCase.name, func(t *testing.T) {
-				data, err := os.ReadFile(testCase.testdata)
-				assert.Equal(t, nil, err)
-				testCase.wantCode = string(data)
-				w := &bytes.Buffer{}
-				err = mg.Generate(testCase.model, w)
-				assert.Equal(t, testCase.wantErr, err)
-				assert.Equal(t, testCase.wantCode, w.String())
-			})
+			data, err := os.ReadFile(testCase.testdata)
+			assert.Equal(t, nil, err)
+			testCase.wantCode = string(data)
+			w := &bytes.Buffer{}
+			err = mg.Generate(testCase.model, w)
+			assert.Equal(t, testCase.wantErr, err)
+			assert.Equal(t, testCase.wantCode, w.String())
 		})
 	}
 }

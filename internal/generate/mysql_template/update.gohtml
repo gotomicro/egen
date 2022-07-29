@@ -1,13 +1,13 @@
 
 
-func (dao *{{.GoName}}DAO) UpdateNoneZeroByWhere(ctx context.Context, val *{{.GoName}}, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.QuotedNoneZero(val)
+func (dao *{{.GoName}}DAO) UpdateColsByWhere(ctx context.Context, val *{{.GoName}}, where string, args ...any) (int64, error) {
+	newArgs, cols := dao.quotedNoneZero(val)
 	newArgs = append(newArgs, args...)
 	s := "UPDATE {{.QuotedTableName}} SET " + cols + " WHERE " + where
 	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
 }
 
-func (dao *{{.GoName}}DAO) QuotedNoneZero(val *{{.GoName}}) ([]interface{}, string) {
+func (dao *{{.GoName}}DAO) quotedNoneZero(val *{{.GoName}}) ([]interface{}, string) {
 	var cols = make([]string, 0, {{len .Fields}})
 	var args = make([]interface{}, 0, {{len .Fields}})
 {{- range .Fields}}
@@ -17,72 +17,45 @@ func (dao *{{.GoName}}DAO) QuotedNoneZero(val *{{.GoName}}) ([]interface{}, stri
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
-	{{- $control = true}}
-	{{- end}}
-    {{- if .IsFloat}}
+		{{- $control = true}}
+    {{- else if .IsFloat}}
 	if val.{{.GoName}} != 0.0 {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
-	{{- $control = true}}
-    {{- end}}
-    {{- if .IsString}}
+		{{- $control = true}}
+    {{- else if .IsString}}
 	if val.{{.GoName}} != "" {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
-	{{- $control = true}}
-    {{- end}}
-    {{- if .IsBool}}
-	if val.{{.GoName}} != False {
+		{{- $control = true}}
+    {{- else if .IsBool}}
+	if val.{{.GoName}} != false {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
-	{{- $control = true}}
-    {{- end}}
-    {{- if .IsSlice}}
+		{{- $control = true}}
+    {{- else if or .IsSlice .IsArray}}
 	if len(val.{{.GoName}}) != 0 {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
-	{{- $control = true}}
-    {{- end}}
-    {{- if .IsArray}}
-	if len(val.{{.GoName}}) != 0 {
-		args = append(args, val.{{.GoName}})
-		cols = append(cols, "`{{.ColName}}`")
-	}
-	{{- $control = true}}
-    {{- end}}
-    {{- if .IsMap}}
+		{{- $control = true}}
+    {{- else if or .IsPtr .IsMap}}
 	if val.{{.GoName}} != nil {
 		args = append(args, val.{{.GoName}})
 		cols = append(cols, "`{{.ColName}}`")
 	}
-	{{- $control = true}}
-    {{- end}}
-    {{- if .IsPtr}}
-	if val.{{.GoName}} != nil {
-		args = append(args, val.{{.GoName}})
-		cols = append(cols, "`{{.ColName}}`")
-	}
-	{{- $control = true}}
-    {{- end}}
-    {{- if eq $control false}}
-    log.Fatalf("列:%s的类型错误",{{.GoName}}})
+		{{- $control = true}}
+    {{- else if not $control}}
+    log.Fatalf("列:%s的类型错误",{{.GoName}})
     {{- end}}
 {{- end}}
 	return args, strings.Join(cols, "=?,")
 }
 
-func (dao *{{.GoName}}DAO) UpdatePrimaryKeyByWhere(ctx context.Context, val *{{.GoName}}, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.QuotedNonePrimaryKey(val)
-	newArgs = append(newArgs, args...)
-	s := "UPDATE {{.QuotedTableName}} SET " + cols + " WHERE " + where
-	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
-}
-
-func (dao *{{.GoName}}DAO) QuotedNonePrimaryKey(val *{{.GoName}}) ([]interface{}, string) {
+func (dao *{{.GoName}}DAO) quotedNonePK(val *{{.GoName}}) ([]interface{}, string) {
 	var cols = make([]string, 0, {{len .Fields}})
 	var args = make([]interface{}, 0, {{len .Fields}})
 	{{- range .Fields}}
@@ -94,14 +67,7 @@ func (dao *{{.GoName}}DAO) QuotedNonePrimaryKey(val *{{.GoName}}) ([]interface{}
 	return args, strings.Join(cols, "=?,")
 }
 
-func (dao *{{.GoName}}DAO) UpdateSpecificColByWhere(ctx context.Context, val *{{.GoName}}, where string, args ...any) (int64, error) {
-	newArgs, cols := dao.QuotedSpecificCol(val)
-	newArgs = append(newArgs, args...)
-	s := "UPDATE {{.QuotedTableName}} SET " + cols + " WHERE " + where
-	return dao.UpdateColByRaw(ctx, val, s, newArgs...)
-}
-
-func (dao *{{.GoName}}DAO) QuotedSpecificCol(val *{{.GoName}}) ([]interface{}, string) {
+func (dao *{{.GoName}}DAO) quotedSpecificCol(val *{{.GoName}}) ([]interface{}, string) {
 	var cols = make([]string, 0, {{len .Fields}})
 	var args = make([]interface{}, 0, {{len .Fields}})
 	{{- range .Fields}}
